@@ -45,8 +45,9 @@ SDO::SDO(const uint8_t& node_id,const CanDevPtr& can_device)
 
 void SDO::update(const CanMsg& msg)
 {
+  //std::cout << "Usao u SDO::update" << '\n';
   uint8_t node_id = msg.id - ds301::ID_TSDO_MIN + 1;
-
+  
   if (node_id != m_node_id)
   {
     std::stringstream ss;
@@ -76,6 +77,9 @@ void SDO::update(const CanMsg& msg)
   {
     m_data_buffer.push_back(msg.data[i]);
   }
+  
+  //std::cout << "Izlazi iz SDO::update" << hexToString(m_data_buffer[0]) <<'\n';
+
 
   m_data_update_received = true;
   m_data_buffer_updated_cond.notify_one();
@@ -147,8 +151,8 @@ bool SDO::download(const bool normal_transfer,
   }
 
   // Send download request over CAN bus
-  m_can_device->Send(msg);
 
+  m_can_device->Send(msg);
   // Lock the data buffer access
   boost::mutex::scoped_lock buffer_guard(m_data_buffer_mutex);
 
@@ -166,9 +170,8 @@ bool SDO::download(const bool normal_transfer,
    * we enable data receiving here again, as it will be locked by the mutex
    * until the end of this function, anyway.
    */
-  m_data_update_received = false;
-
-
+  m_data_update_received = false;  
+  //std::cout << "Usao u SDO::download" << hexToString(m_data_buffer[0]) << '\n';
   // sanitizing again
   if ( m_data_buffer.size() != 8 )
   {
@@ -200,7 +203,7 @@ bool SDO::download(const bool normal_transfer,
         << ", got " << hexToString(rdindex) << "/" << hexToString(rdsubindex);
     throw ResponseException(index, subindex, ss.str());
   }
-
+  //std::cout << "Izlazi iz SDO::download, sve ok" << hexToString(m_data_buffer[0]) << '\n';
   // If we reached this point, everything is fine :)
   return true;
 }
@@ -212,6 +215,7 @@ bool SDO::upload(const bool normal_transfer,
                  std::vector<uint8_t>& uploaded_data)
 {
   //TODO: support normal transfer as well
+  //std::cout << "Usao u SDO::upload" << hexToString(m_data_buffer[0]) << '\n';
   if (normal_transfer)
   {
     LOGGING_ERROR_C(CanOpen, SDO, "So far only expedited transfers with maximum 4 data bytes "
@@ -219,23 +223,21 @@ bool SDO::upload(const bool normal_transfer,
                                   << "However, blocked transfer of was requested. Aborting upload" << endl);
     return false;
   }
-
   CanMsg msg;
-
-  msg.id = ds301::ID_RSDO_MIN + m_node_id - 1;
+  //std::cout << "SDO::upload? ispis id-a" << hexToString(ds301::ID_RSDO_MIN + m_node_id - 1) << '\n';
+  ;
+  msg.id = ds301::ID_RSDO_MIN + m_node_id - 1; // ID_RSDO_MIN = 1537, m_node_id = 0x03 u prvom, ukupno msg.id = 0x603
   msg.dlc = 8;
   msg.rtr = 0;
-  msg.data[0] = SDO_SEG_REQ_INIT_UPLOAD;
-  msg.data[1] = index & 0xff;
-  msg.data[2] = index >> 8;
+  msg.data[0] = SDO_SEG_REQ_INIT_UPLOAD; // SDO_SEG_REQ_INIT_UPLOAD = 0x40
+  msg.data[1] = index & 0xff; // 0x50 (index = 0x2050)
+  msg.data[2] = index >> 8; // 0x20
   msg.data[3] = subindex;
-
   // Send upload request over CAN bus
-  m_can_device->Send(msg);
-
+  //std::cout << "SAD salje " << '\n';
+  m_can_device->Send(msg); //kod ovog postane 0x80 i aj ca
   // Lock the data buffer access
   boost::mutex::scoped_lock buffer_guard(m_data_buffer_mutex);
-
   if (!m_data_update_received)
   {
     // Wait some time for the response...
@@ -245,7 +247,7 @@ bool SDO::upload(const bool normal_transfer,
       throw (TimeoutException(index, subindex, "No response to SDO upload request received!"));
     }
   }
-
+  //std::cout << "I dale Jel jos u SDO::upload?" << '\n';
   /* New data will be processed next. As we might return from the function at many points,
    * we enable data receiving here again, as it will be locked by the mutex
    * until the end of this function, anyway.
@@ -259,8 +261,9 @@ bool SDO::upload(const bool normal_transfer,
     ss << "Unexpected length " << m_data_buffer.size() << " of SDO response. Expected 8.";
     throw ProtocolException (index, subindex, ss.str());
   }
-  if ( m_data_buffer[0] == SDO_SEG_ABORT_TRANSFER )
+  if ( m_data_buffer[0] == SDO_SEG_ABORT_TRANSFER ) //static unsigned char const SDO_SEG_ABORT_TRANSFER =0x80;
   {
+    //std::cout << "ako ovo SDO_SEG_ABORT_TRANSFER "  << hexToString(m_data_buffer[0]) << '\n';
     uint32_t error_code = m_data_buffer[4] + (m_data_buffer[5]<<8) + (m_data_buffer[6]<<16) + (m_data_buffer[7]<<24);
     std::stringstream ss;
     ss << "SDO transfer aborted: " << lookupErrorString(error_code);
@@ -279,7 +282,7 @@ bool SDO::upload(const bool normal_transfer,
 
   uploaded_data.clear();
   uint8_t num_bytes = 0;
-
+  //std::cout << "I dalje SDO::upload" << hexToString(m_data_buffer[0]) << '\n';
   switch (m_data_buffer[0])
   {
     case SDO_SEG_RES_INIT_UPLOAD_1BYTE:
@@ -299,11 +302,13 @@ bool SDO::upload(const bool normal_transfer,
     }
     case SDO_SEG_RES_INIT_UPLOAD_4BYTE:
     {
+      //std::cout << "I dalje SDO::upload trazi 4 bytea" << '\n';
       num_bytes = 4;
       break;
     }
     default:
     {
+      //std::cout << "Nije dobro poslano u sdo::upload" << '\n';
       std::stringstream ss;
       ss << "Illegal SDO upload response received. Please note that so far only expedited "
          << " uploads with a data length of up to 4 bytes are supported.\n"
@@ -316,7 +321,7 @@ bool SDO::upload(const bool normal_transfer,
   {
     uploaded_data.push_back(m_data_buffer[4+i]);
   }
-
+  //std::cout << "Izlazi iz SDO::upload" << hexToString(m_data_buffer[0]) << '\n';
   return true;
 }
 

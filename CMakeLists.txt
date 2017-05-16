@@ -165,7 +165,7 @@ add_dependencies(schunk_canopen_driver_node ${PROJECT_NAME}_generate_messages_cp
    ${catkin_LIBRARIES}
  )
 
-
+#src/icl_hardware_canopen/src/icl_hardware_canopen/test/test_sdo.cpp
 ## Declare a cpp executable
 add_executable(schunk_canopen_driver_move_home_node
   src/MoveToHomeNode.cpp
@@ -182,7 +182,7 @@ add_dependencies(schunk_canopen_driver_move_home_node ${PROJECT_NAME}_generate_m
    ${icl_core_LIBRARIES}
    ${icl_comm_INCLUDE_DIRS}
    ${catkin_LIBRARIES}
- )
+)
 
 #############
 ## Install ##

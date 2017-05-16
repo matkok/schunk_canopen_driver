@@ -66,7 +66,8 @@ CanOpenController::~CanOpenController ()
 
 void CanOpenController::initNodes (const int16_t node_id)
 {
-  for (std::map<uint8_t, DS301Node::Ptr>::iterator it = m_nodes.begin(); it != m_nodes.end(); ++it)
+  std::cout << "COC init nodes, sad bi trebalo SPowerBN" << '\n';
+  for (std::map<uint8_t, DS301Node::Ptr>::iterator it = m_nodes.begin(); it != m_nodes.end(); ++it) //std::map<uint8_t, DS301Node::Ptr> m_nodes;
   {
     if (it->first == node_id || node_id < 0)
     {

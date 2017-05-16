@@ -157,6 +157,7 @@ SchunkCanopenNode::SchunkCanopenNode()
       }
       else
       {
+        //std::cout << "tu definira addnode " << chain_names[i] << '\n';
         m_controller->addNode<SchunkPowerBallNode>(chain[j], chain_names[i]);
       }
 
@@ -239,12 +240,23 @@ void SchunkCanopenNode::initDevices()
 
   // initialize all nodes, by default this will start ProfilePosition mode, so we're good to enable nodes
   try {
+    //std::cout << "SchunkCanopenNode::initDevices zove init" << '\n';
     m_controller->initNodes();
   }
   catch (const ProtocolException& e)
   {
-    ROS_ERROR_STREAM ("Caught ProtocolException while initializing devices: " << e.what());
-    ROS_INFO ("Going to shut down now");
+    //ovo je za ispis te poruke
+    //const char* ucopy = e.what();
+    //std::ios_base::fmtflags old_flags = std::cout.flags();
+    //std::cout.setf(std::ios::hex, std::ios::basefield);
+    //for (const char* p = ucopy, *m = p + 50; p != m; ++p) {
+    //    std::cout << std::setw(2) << std::setfill('0') << static_cast<unsigned>(*p) << " ";
+    //}
+    //std::cout.flags(old_flags);
+    //std::cout << '\n';
+
+    ROS_ERROR_STREAM ("Caughtt ProtocolException while initializing devices: " << e.what()); //exceptions.h
+    ROS_INFO ("Going to shut down now"); 
     exit (-1);
   }
   catch (const PDOException& e)

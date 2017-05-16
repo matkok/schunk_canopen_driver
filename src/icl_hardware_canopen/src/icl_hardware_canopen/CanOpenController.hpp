@@ -79,6 +79,7 @@ boost::shared_ptr<GroupT> CanOpenController::getGroup (const std::string& index)
 template <typename NodeT>
 void CanOpenController::addNode(const uint8_t node_id, const std::string& group_name)
 {
+  std::cout << "dodaje node Powerball CanOpenController::addNode" << '\n';
   std::string sanitized_identifier = sanitizeString(group_name);
   std::map<std::string, DS301Group::Ptr>::iterator group_it;
   group_it = m_groups.find(sanitized_identifier);

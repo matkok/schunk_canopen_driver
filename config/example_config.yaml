@@ -1,4 +1,5 @@
 # Quite arbitrary group name. Multiple chains can be defined here.
+#chain_names: ["/arm_controller"]
 chain_names: ["arm"]
 #chain_names: ["arm", "gripper"]
 

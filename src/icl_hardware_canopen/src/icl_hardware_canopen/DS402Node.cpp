@@ -638,6 +638,7 @@ void DS402Node::querySupportedDeviceModes()
 
 void DS402Node::initNode()
 {
+  std::cout << "sad u 402 init node" << '\n';
   setDefaultPDOMapping(PDO_MAPPING_PROFILE_POSITION_MODE);
   DS301Node::initNode();
   querySupportedDeviceModes();

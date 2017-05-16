@@ -43,10 +43,15 @@ SchunkPowerBallNode::SchunkPowerBallNode (const uint8_t node_id, const CanDevPtr
 
 void SchunkPowerBallNode::initNode()
 {
+  //std::cout << "sad u SchunkPowerBallNode::initNode, ide u 402" << '\n';
   icl_hardware::canopen_schunk::DS402Node::initNode();
+  //std::cout << "sad u SchunkPowerBallNode::initNode, ide u NMTstart" << '\n';
   m_nmt.start();
+  //std::cout << "sad u SchunkPowerBallNode::initNode, ide u commutation search" << '\n';
   commutationSearch();
+  //std::cout << "sad u SchunkPowerBallNode::initNode, ide u setModeof OP" << '\n';
   setModeOfOperation(ds402::MOO_PROFILE_POSITION_MODE);
+
 }
 
 void SchunkPowerBallNode::setDefaultPDOMapping (const DS402Node::eDefaultPDOMapping mapping)
@@ -109,13 +114,14 @@ void SchunkPowerBallNode::setDefaultPDOMapping (const DS402Node::eDefaultPDOMapp
 void SchunkPowerBallNode::commutationSearch()
 {
   LOGGING_INFO (CanOpen, "Commutation search for node  " << m_node_id << endl);
-
-  bool calib_ok = CommutationCalibrated();
-
+  //std::cout << "usao u SchunkPowerBallNode::commutationSearch" << '\n';
+  //bool calib_ok = CommutationCalibrated(); //tu zapne
+  bool calib_ok = true;
   // copy current position into the PDO buffer, as this will be read by the enable function
   int32_t current_position = 0;
   m_sdo.upload(false, 0x6064, 0x0, current_position);
-  setTPDOValue("measured_position", current_position);
+
+  setTPDOValue("measured_position", current_position); //MISLIM DA TU PUKNE
   LOGGING_INFO(CanOpen, "Initially, node is at position " << current_position << endl);
 
   // I'm not entirely sure why I need that, but I get an RPDO timeout error if I remove this
@@ -171,15 +177,16 @@ void SchunkPowerBallNode::commutationSearch()
 bool SchunkPowerBallNode::CommutationCalibrated()
 {
   uint8_t commutation_status;
-
   bool commutation_search_completed = true;
-
   //  - Bit 0 (Bit-Maske 0x01) mit der Bedeutung "commutation_search_completed"
   //  - Bit 1 (Bit-Maske 0x02) mit der Bedeutung "pseudo_absolute_position_verified"
+  //std::cout << "salje, tu bi trebao zapet" << '\n';
   m_sdo.upload(false, 0x2050, 0, commutation_status);
-//   LOGGING_INFO(CanOpen, "Commutation status: " << hexToString(commutation_status) << endl);
+  //m_sdo.upload(false, 0x7D2B, 0, commutation_status);
+  //std::cout << "uslo u SchunkPowerBallNode::CommutationCalibrated" << '\n';
+  LOGGING_INFO(CanOpen, "Commutation status: " << hexToString(commutation_status) << endl);
   commutation_search_completed = commutation_status & (1 << 0);
-
+  //std::cout << "commutation status" << commutation_status << '\n';
   return commutation_search_completed;
 }
 
