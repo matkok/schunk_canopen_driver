@@ -1,0 +1,34 @@
+Instructions for setting up scunk_canopn_driver package.
+
+# Installing the software #
+
+## The CAN transceiver driver ##
+
+Download a recent version of the driver from the [PEAK-System website](http://www.peak-system.com/fileadmin/media/linux/index.htm). Version 7.15.2 was used at the time these notes were written. Unpack the archive, switch to the unpacked directory and build the driver using the following commands:
+(TODO: check if needed)
+```
+#!shell
+
+make NET=NO_NETDEV_SUPPORT
+sudo make install
+```
+
+If everything went well, the red diagnostic LED on the CAN transceiver should start blinking (TODO: check!) when you plug in the the transceiver.
+
+## Dependencies installation##
+```
+#!shell
+
+git clone https://github.com/fzi-forschungszentrum-informatik/fzi_icl_core.git
+git clone https://github.com/fzi-forschungszentrum-informatik/fzi_icl_can.git
+git clone https://github.com/matkok/schunk_canopen_driver.git (difference in SchunkPowerBallNode.cpp, no call for CommutationCalibrated())
+
+catkin_make_isolated
+source devel_isolated/setup.bash
+rosrun fzi_icl_can install_pcan_module.sh
+
+```
+
+After  that you can delete folders fzi_icl_core and fzi_icl_can from /src and do "catkin_make" and source "devel/setup.bash".
+
+Detailed description of package on http://wiki.ros.org/schunk_canopen_driver.
